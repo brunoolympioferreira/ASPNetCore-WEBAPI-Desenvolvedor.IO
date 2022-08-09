@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DevIo.Api.Controllers;
 using DevIo.Api.Extensions;
 using DevIo.Api.ViewModels;
 using DevIO.Business.Intefaces;
@@ -6,10 +7,11 @@ using DevIO.Business.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DevIo.Api.Controllers
+namespace DevIo.Api.V1.Controllers
 {
     [Authorize]
-    [Route("api/fornecedores")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/fornecedores")]
     public class FornecedoresController : MainController
     {
         private readonly IFornecedorRepository _fornecedorRepository;
@@ -17,7 +19,11 @@ namespace DevIo.Api.Controllers
         private readonly IFornecedorService _fornecedorService;
         private readonly IEnderecoRepository _enderecoRepository;
 
-        public FornecedoresController(IFornecedorRepository fornecedorRepository, IMapper mapper, IFornecedorService fornecedorService, INotificador notificador, IEnderecoRepository enderecoRepository) : base(notificador)
+        public FornecedoresController(IFornecedorRepository fornecedorRepository,
+                                      IMapper mapper, IFornecedorService fornecedorService,
+                                      INotificador notificador,
+                                      IEnderecoRepository enderecoRepository,
+                                      IUser user) : base(notificador, user)
         {
             _fornecedorRepository = fornecedorRepository;
             _mapper = mapper;
@@ -25,6 +31,7 @@ namespace DevIo.Api.Controllers
             _enderecoRepository = enderecoRepository;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IEnumerable<FornecedorViewModel>> ObterTodos()
         {
@@ -41,7 +48,7 @@ namespace DevIo.Api.Controllers
             return fornecedor;
         }
 
-        [ClaimsAuthorize("Fornecedor","Adicionar")]
+        [ClaimsAuthorize("Fornecedor", "Adicionar")]
         [HttpPost]
         public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
         {
@@ -49,7 +56,7 @@ namespace DevIo.Api.Controllers
 
             await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorViewModel));
 
-            return CustomResponse(fornecedorViewModel);     
+            return CustomResponse(fornecedorViewModel);
         }
 
         [ClaimsAuthorize("Fornecedor", "Atualizar")]
